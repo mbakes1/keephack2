@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useToastContext } from '../../contexts/ToastContext'
 import { AuthLayout } from './AuthLayout'
 
 export function Signup() {
@@ -11,34 +12,46 @@ export function Signup() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   
   const { signUp } = useAuth()
+  const { success: showSuccess, error } = useToastContext()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      error({
+        title: 'Password mismatch',
+        message: 'Passwords do not match. Please try again.'
+      })
       setLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+      error({
+        title: 'Password too short',
+        message: 'Password must be at least 6 characters long.'
+      })
       setLoading(false)
       return
     }
 
-    const { error } = await signUp(email, password)
+    const { error: signUpError } = await signUp(email, password)
     
-    if (error) {
-      setError(error.message)
+    if (signUpError) {
+      error({
+        title: 'Sign up failed',
+        message: signUpError.message
+      })
     } else {
+      showSuccess({
+        title: 'Account created!',
+        message: 'Please check your email for a confirmation link.'
+      })
       setSuccess(true)
       setTimeout(() => {
         navigate('/login')
@@ -74,12 +87,6 @@ export function Signup() {
       subtitle="Join us and get started today"
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm font-manrope">
-            {error}
-          </div>
-        )}
-        
         <div>
           <label htmlFor="email" className="block text-sm font-manrope font-medium text-gray-700 mb-2">
             Email address

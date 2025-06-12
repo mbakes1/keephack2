@@ -6,10 +6,12 @@ import { AssetForm } from './assets/AssetForm'
 import { AssetFilters } from './assets/AssetFilters'
 import { AssetDetail } from './assets/AssetDetail'
 import { useAssets } from '../hooks/useAssets'
+import { useToastContext } from '../contexts/ToastContext'
 import { Asset, AssetFilters as AssetFiltersType } from '../types/assets'
 
 export function Assets() {
   const { assets, categories, loading, createAsset, updateAsset, deleteAsset, fetchAssets } = useAssets()
+  const { success, error, warning } = useToastContext()
   const [showForm, setShowForm] = useState(false)
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null)
   const [viewingAssetId, setViewingAssetId] = useState<string | null>(null)
@@ -43,21 +45,54 @@ export function Assets() {
   const confirmDelete = async () => {
     if (!showDeleteConfirm) return
     
-    const { error } = await deleteAsset(showDeleteConfirm.id)
-    if (!error) {
+    const { error: deleteError } = await deleteAsset(showDeleteConfirm.id)
+    if (!deleteError) {
+      success({
+        title: 'Asset deleted',
+        message: `"${showDeleteConfirm.name}" has been permanently deleted.`
+      })
       setShowDeleteConfirm(null)
+    } else {
+      error({
+        title: 'Delete failed',
+        message: deleteError
+      })
     }
   }
 
   const handleFormSubmit = async (formData: any) => {
     if (editingAsset) {
-      return await updateAsset(editingAsset.id, formData)
+      const { error: updateError } = await updateAsset(editingAsset.id, formData)
+      if (!updateError) {
+        success({
+          title: 'Asset updated',
+          message: `"${formData.name}" has been updated successfully.`
+        })
+        setShowForm(false)
+      }
+      return { data: null, error: updateError }
     } else {
-      return await createAsset(formData)
+      const { error: createError } = await createAsset(formData)
+      if (!createError) {
+        success({
+          title: 'Asset created',
+          message: `"${formData.name}" has been added to your inventory.`
+        })
+        setShowForm(false)
+      }
+      return { data: null, error: createError }
     }
   }
 
   const handleExportAssets = () => {
+    if (assets.length === 0) {
+      warning({
+        title: 'No assets to export',
+        message: 'There are no assets available to export.'
+      })
+      return
+    }
+
     // Create CSV content
     const headers = ['Name', 'Category', 'Serial Number', 'Brand', 'Model', 'Location', 'Status', 'Condition', 'Purchase Date', 'Purchase Price', 'Supplier']
     const csvContent = [
@@ -87,6 +122,11 @@ export function Assets() {
     a.click()
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
+
+    success({
+      title: 'Export completed',
+      message: `${assets.length} assets exported successfully.`
+    })
   }
 
   return (

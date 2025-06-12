@@ -2,26 +2,33 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, ArrowLeft, Send } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useToastContext } from '../../contexts/ToastContext'
 import { AuthLayout } from './AuthLayout'
 
 export function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   
   const { resetPassword } = useAuth()
+  const { success: showSuccess, error } = useToastContext()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
 
-    const { error } = await resetPassword(email)
+    const { error: resetError } = await resetPassword(email)
     
-    if (error) {
-      setError(error.message)
+    if (resetError) {
+      error({
+        title: 'Reset failed',
+        message: resetError.message
+      })
     } else {
+      showSuccess({
+        title: 'Reset link sent',
+        message: 'If an account with that email exists, we\'ve sent you a password reset link.'
+      })
       setSuccess(true)
     }
     
@@ -58,12 +65,6 @@ export function ForgotPassword() {
       subtitle="Enter your email to receive a reset link"
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm font-manrope">
-            {error}
-          </div>
-        )}
-        
         <div>
           <label htmlFor="email" className="block text-sm font-manrope font-medium text-gray-700 mb-2">
             Email address
