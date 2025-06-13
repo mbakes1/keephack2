@@ -6,6 +6,7 @@ import { ForgotPassword } from './components/auth/ForgotPassword'
 import { Dashboard } from './components/Dashboard'
 import { Assets } from './components/Assets'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { ToastProvider } from './contexts/ToastContext'
 import { useAuth } from './hooks/useAuth'
 
 function App() {
@@ -20,44 +21,46 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route 
-            path="/" 
-            element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} 
-          />
-          <Route 
-            path="/login" 
-            element={user ? <Navigate to="/dashboard" replace /> : <Login />} 
-          />
-          <Route 
-            path="/signup" 
-            element={user ? <Navigate to="/dashboard" replace /> : <Signup />} 
-          />
-          <Route 
-            path="/forgot-password" 
-            element={user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} 
-          />
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/assets" 
-            element={
-              <ProtectedRoute>
-                <Assets />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </div>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route 
+              path="/" 
+              element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/login" 
+              element={user ? <Navigate to="/dashboard" replace /> : <Login />} 
+            />
+            <Route 
+              path="/signup" 
+              element={user ? <Navigate to="/dashboard" replace /> : <Signup />} 
+            />
+            <Route 
+              path="/forgot-password" 
+              element={user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/assets" 
+              element={
+                <ProtectedRoute>
+                  <Assets />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </div>
+      </Router>
+    </ToastProvider>
   )
 }
 

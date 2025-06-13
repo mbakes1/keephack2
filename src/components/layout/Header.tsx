@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Bell, Menu, User, LogOut, Settings } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useToastContext } from '../../contexts/ToastContext'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -8,10 +9,15 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, signOut } = useAuth()
+  const { success } = useToastContext()
   const [showUserMenu, setShowUserMenu] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
+    success({
+      title: 'Signed out',
+      message: 'You have been signed out successfully.'
+    })
     setShowUserMenu(false)
   }
 

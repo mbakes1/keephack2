@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useToastContext } from '../../contexts/ToastContext'
 import { AuthLayout } from './AuthLayout'
 
 export function Login() {
@@ -9,21 +10,27 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   
   const { signIn } = useAuth()
+  const { success, error } = useToastContext()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
 
-    const { error } = await signIn(email, password)
+    const { error: signInError } = await signIn(email, password)
     
-    if (error) {
-      setError(error.message)
+    if (signInError) {
+      error({
+        title: 'Sign in failed',
+        message: signInError.message
+      })
     } else {
+      success({
+        title: 'Welcome back!',
+        message: 'You have been signed in successfully.'
+      })
       navigate('/dashboard')
     }
     
@@ -36,12 +43,6 @@ export function Login() {
       subtitle="Sign in to your account to continue"
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm font-manrope">
-            {error}
-          </div>
-        )}
-        
         <div>
           <label htmlFor="email" className="block text-sm font-manrope font-medium text-gray-700 mb-2">
             Email address
